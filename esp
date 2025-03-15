@@ -1,0 +1,178 @@
+local player = game.Players.LocalPlayer
+local camera = game.Workspace.CurrentCamera
+local gui = Instance.new("ScreenGui")
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local TweenService = game:GetService("TweenService")
+local spectating = false
+local targetPlayer = nil
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.35, 0, 0.55, 0)
+frame.Position = UDim2.new(0.325, 0, 0.2, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BackgroundTransparency = 0.5
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 3
+stroke.Color = Color3.fromRGB(60, 60, 60)
+stroke.Parent = frame
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.1, 0)
+corner.Parent = frame
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0.1, 0)
+titleLabel.Text = "Spectate & ESP"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+-- TextBox (Enter Username)
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0.8, 0, 0.1, 0)
+textBox.Position = UDim2.new(0.1, 0, 0.25, 0)
+textBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "Enter Username"
+textBox.TextScaled = true
+textBox.Font = Enum.Font.SourceSans
+textBox.Parent = frame
+
+-- Account Info
+local infoLabel = Instance.new("TextLabel")
+infoLabel.Size = UDim2.new(1, 0, 0.1, 0)
+infoLabel.Position = UDim2.new(0, 0, 0.65, 0)
+infoLabel.Text = "Account Age: N/A"
+infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+infoLabel.TextScaled = true
+infoLabel.BackgroundTransparency = 1
+infoLabel.Font = Enum.Font.SourceSans
+infoLabel.Parent = frame
+
+-- Made by Label
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Size = UDim2.new(1, 0, 0.05, 0)
+creditLabel.Position = UDim2.new(0, 0, 0.95, 0)
+creditLabel.Text = "Made by robloxsploit"
+creditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+creditLabel.TextScaled = true
+creditLabel.BackgroundTransparency = 1
+creditLabel.Font = Enum.Font.SourceSansBold
+creditLabel.Parent = frame
+
+-- Toggle Button Function
+local function createToggleSwitch(parent, position, text)
+    local switch = Instance.new("Frame")
+    switch.Size = UDim2.new(0.4, 0, 0.1, 0)
+    switch.Position = position
+    switch.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    switch.Parent = parent
+
+    local switchCorner = Instance.new("UICorner")
+    switchCorner.CornerRadius = UDim.new(0.5, 0)
+    switchCorner.Parent = switch
+
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.5, 0, 1, 0)
+    toggle.Position = UDim2.new(0, 0, 0, 0)
+    toggle.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    toggle.Text = ""
+    toggle.Parent = switch
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0.5, 0)
+    toggleCorner.Parent = toggle
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextScaled = true
+    label.Font = Enum.Font.SourceSansBold
+    label.Parent = switch
+
+    return toggle, switch
+end
+
+-- Create Spectate & ESP Toggle Switches
+local spectateToggle, spectateSwitch = createToggleSwitch(frame, UDim2.new(0.1, 0, 0.8, 0), "Spectate")
+local espToggle, espSwitch = createToggleSwitch(frame, UDim2.new(0.55, 0, 0.8, 0), "ESP")
+
+-- Spectate Function
+spectateToggle.MouseButton1Click:Connect(function()
+    if spectating then
+        -- Stop Spectating
+        camera.CameraSubject = player.Character and player.Character:FindFirstChild("Humanoid") or player
+        spectating = false
+        targetPlayer = nil
+
+        local tween = TweenService:Create(spectateToggle, TweenInfo.new(0.3), {Position = UDim2.new(0, 0, 0, 0)})
+        tween:Play()
+    else
+        -- Get Player from Input
+        local targetName = textBox.Text
+        local foundPlayer = game.Players:FindFirstChild(targetName)
+
+        if foundPlayer and foundPlayer.Character then
+            targetPlayer = foundPlayer
+            camera.CameraSubject = foundPlayer.Character:FindFirstChild("Humanoid")
+            spectating = true
+
+            local tween = TweenService:Create(spectateToggle, TweenInfo.new(0.3), {Position = UDim2.new(0.5, 0, 0, 0)})
+            tween:Play()
+        end
+    end
+end)
+
+-- ESP Function with Highlights
+local espEnabled = false
+espToggle.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+
+    local tween = TweenService:Create(espToggle, TweenInfo.new(0.3), {Position = espEnabled and UDim2.new(0.5, 0, 0, 0) or UDim2.new(0, 0, 0, 0)})
+    tween:Play()
+
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p.Character then
+            if espEnabled then
+                -- Create ESP Tag
+                local billboard = Instance.new("BillboardGui")
+                billboard.Size = UDim2.new(0, 200, 0, 50)
+                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                billboard.Adornee = p.Character:FindFirstChild("Head")
+                billboard.Name = "ESPTag"
+                billboard.AlwaysOnTop = true
+                billboard.Parent = p.Character
+
+                local nameLabel = Instance.new("TextLabel")
+                nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                nameLabel.TextScaled = true
+                nameLabel.Text = p.DisplayName .. " (" .. p.Name .. ")"
+                nameLabel.Font = Enum.Font.SourceSansBold
+                nameLabel.Parent = billboard
+
+                local highlight = Instance.new("Highlight")
+                highlight.FillTransparency = 0.7
+                highlight.OutlineTransparency = 0
+                highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+                highlight.Parent = p.Character
+                highlight.Name = "ESPHighlight"
+            else
+                if p.Character:FindFirstChild("ESPTag") then p.Character.ESPTag:Destroy() end
+                if p.Character:FindFirstChild("ESPHighlight") then p.Character.ESPHighlight:Destroy() end
+            end
+        end
+    end
+end)
